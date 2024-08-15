@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 
 die () {
-  echo "ERROR: ${1}"
-  exit 1
+    echo "ERROR: ${1}"
+    exit 1
+}
+
+timestamp () {
+    echo "[$(date '+%I:%M:%S %p')]"
 }
 
 check_depending_env () {
@@ -27,21 +31,23 @@ check_depending_env () {
   fi
 }
 
+# When enabled, will write all executed commands to the terminal.  Can be helpful for visualizing script's control flow.
 [[ ${DOCKER_DEBUG} ]] && set -x
 
-# Set exec-bit automatic. When adding hooks in a Dockerfile, we shoulnt also haveto think about setting +x
-# in the Dockerfile for the same file. If you want to disable a hook, rename it.
+# Automatically allow execution for all scripts.  When adding new hooks, we shouldn't also have think about granting execute permission in the
+# Dockerfile as well. If you want to disable a hook, rename it.
 chmod +x /init/setup /hooks/{entrypoint-pre.d/*,entrypoint-run,entrypoint-exec,supervisord-pre.d/*,supervisord-ready} 2> /dev/null || true
 
 entrypoint_pre=$(ls /hooks/entrypoint-pre.d/* 2>/dev/null | sort -n )
 if [ "$entrypoint_pre" != "" ]; then
-  for hook in $entrypoint_pre; do
-    echo "Executing hook ${hook}"
-    /bin/bash -c "${hook}"
-    if [ "$?" != "0" ]; then
-      die "hook ${hook}} returned a non-zero exit status '$?'"
-    fi
-  done
+    for hook in $entrypoint_pre; do
+        echo "$(timestamp) Executing hook ${hook}"
+        /bin/bash -c "${hook}"
+
+        if [ "$?" != "0" ]; then
+            die "hook ${hook}} returned a non-zero exit status '$?'"
+        fi
+    done
 fi
 
 [[ -f "/hooks/entrypoint-pre" ]] && echo "The /hooks/entrypoint-pre hook has been replaced with /hooks/entrypoint-pre.d/*" && exit 1
