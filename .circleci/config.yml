@@ -8,9 +8,9 @@ workflows:
           requires:
             - test
           filters:
-             branches:
-               only: 
-                 - master
+            branches:
+              only:
+                - master
       - build_children:
           context: circle-api
           requires:
@@ -30,9 +30,9 @@ workflows:
           requires:
             - test
           filters:
-             branches:
-               only: 
-                 - master
+            branches:
+              only:
+                - master
       - build_children:
           context: circle-api
           requires:
@@ -80,8 +80,7 @@ jobs:
           destination: docker-lancachenet-ubuntu.tar
       - persist_to_workspace:
           root: workspace
-          paths:
-            lancachenet-ubuntu.tar
+          paths: lancachenet-ubuntu.tar
   publish_latest:
     executor: testbuild-executor
     steps:
@@ -100,7 +99,7 @@ jobs:
       - run:
           name: "Request API to build children"
           command: |
-              for child in {"ubuntu-nginx","lancache-dns"}; do
-                 echo "Asking API to trigger build for $child"
-                 curl -X POST --header "Content-Type: application/json" -d '{"branch":"master"}' https://circleci.com/api/v1.1/project/github/lancachenet/$child/build?circle-token=${CIRCLE_API_USER_TOKEN}
-              done
+            for child in {"ubuntu-nginx","lancache-dns"}; do
+              echo "Asking API to trigger build for $child"
+              curl -X POST --header "Content-Type: application/json" -d '{"branch":"master"}' https://circleci.com/api/v1.1/project/github/lancachenet/$child/build?circle-token=${CIRCLE_API_USER_TOKEN}
+            done
